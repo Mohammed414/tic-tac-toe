@@ -1,12 +1,12 @@
 // Game object
 const gameBoard = (function () {
-  const boardArray = [
-    ["o", "x", "x"],
-    ["?", "o", "?"],
-    ["o", "o", "?"],
+  let boardArray = [
+    ["?", "?", "?"],
+    ["?", "?", "?"],
+    ["?", "?", "?"],
   ];
   let spacesAvailable = 9;
-  const getBoard = () => boardArray;
+  const getBoardArray = () => boardArray;
   const printBoard = () => {
     boardArray.forEach((row) => {
       console.log(row);
@@ -23,11 +23,21 @@ const gameBoard = (function () {
 
   const getSpaceAvailable = () => spacesAvailable;
 
+  const cleanBoard = () => {
+    boardArray = [
+      ["?", "?", "?"],
+      ["?", "?", "?"],
+      ["?", "?", "?"],
+    ];
+    spacesAvailable = 9;
+  };
+
   return {
-    getBoard,
+    getBoardArray,
     printBoard,
     addToken,
     getSpaceAvailable,
+    cleanBoard,
   };
 })();
 
@@ -43,7 +53,6 @@ const Player = (name, token) => {
 
 gameController = (playerOneName, playerTwoName) => {
   const board = gameBoard;
-  board.printBoard();
   const playerOne = Player(playerOneName, "x");
   const playerTwo = Player(playerTwoName, "o");
 
@@ -56,15 +65,16 @@ gameController = (playerOneName, playerTwoName) => {
     if (isAdded) {
       currentPlayer = currentPlayer === playerOne ? playerTwo : playerOne;
     }
-    board.printBoard();
   };
 
   const getCurrentPlayer = () => currentPlayer;
 
-  const checkWinnerToken = () => {
-    let winnerToken = null;
+  const getBoardArr = () => board.getBoardArray();
+
+  const getWinner = () => {
+    let winnerToken = "?";
     // check if there rows with same token
-    const boardArr = board.getBoard();
+    const boardArr = board.getBoardArray();
     for (const row of boardArr) {
       if (
         row.every((elem) => elem === "x") ||
@@ -80,6 +90,7 @@ gameController = (playerOneName, playerTwoName) => {
         boardArr[0][i] == boardArr[2][i]
       ) {
         winnerToken = boardArr[0][i];
+        return winnerToken;
       }
     }
 
@@ -92,40 +103,79 @@ gameController = (playerOneName, playerTwoName) => {
     }
 
     if (board.getSpaceAvailable() === 0) {
-      return "tie";
+      winnerToken = "tie";
     }
     return winnerToken;
   };
 
-  const getBoardArr = () => board.getBoard();
+  const getBoard = () => board;
+  const resetGame = () => {
+    board.cleanBoard();
+    currentPlayer = playerOne;
+  };
 
   return {
     playRound,
     getCurrentPlayer,
-    checkWinnerToken,
+    getBoardArr,
+    getWinner,
+    getBoard,
+    resetGame,
   };
 };
 
 const screenController = () => {
-  const game = gameController();
+  let game = gameController();
   const boardDiv = document.querySelector(".game-board");
+  const headerElement = document.querySelector(".header__text");
+  const restartButton = document.querySelector(".restart-btn");
+
+  restartButton.addEventListener("click", function () {
+    game.resetGame();
+    updateScreen();
+  });
+
+  function cellClickHandler(e) {
+    const row = e.target.dataset.row;
+    const column = e.target.dataset.column;
+    game.playRound(row, column);
+    updateScreen();
+  }
+
   const updateScreen = () => {
+    console.log("updating screen");
     boardDiv.textContent = "";
+    console.log(game.getBoardArr());
     const boardArr = game.getBoardArr();
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
         const cellButton = document.createElement("button");
+        cellButton.classList.add("board-cell");
         if (boardArr[i][j] == "x" || boardArr[i][j] == "o") {
           cellButton.classList.add(boardArr[i][j]);
         }
         cellButton.dataset.column = j + 1;
         cellButton.dataset.row = i + 1;
+        // if there is winner don't add event listener
+        if (game.getWinner() === "?") {
+          cellButton.addEventListener("click", cellClickHandler);
+        }
+        boardDiv.appendChild(cellButton);
       }
     }
 
-    // initial render
-    updateScreen();
+    const winnerToken = game.getWinner();
+    if (winnerToken != "?") {
+      headerElement.textContent = `${game.getWinner()} wins!`;
+    } else {
+      headerElement.textContent = `It's ${game
+        .getCurrentPlayer()
+        .getToken()}'s turn`;
+    }
   };
+
+  // initial render
+  updateScreen();
 };
 
 const controller = screenController();
