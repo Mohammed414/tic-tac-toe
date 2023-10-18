@@ -28,11 +28,13 @@ The goal of this project is to provide a fun and interactive way for users to pl
 
 ## What I learned
 
-TODO: Highlight the key learnings from the project
+I learned organizing my code using IIFEs (Immediately Invoked Function Expressions) and the module pattern. I also learned how to use the revealing module pattern to expose certain methods and variables to the global scope while keeping the rest of the code private using closures.
 
 ## Features
 
-TODO: Highlight the key features and functionalities of the project
+- Interactive user interface
+- Game logic
+- Game reset
 
 ## Setup
 
